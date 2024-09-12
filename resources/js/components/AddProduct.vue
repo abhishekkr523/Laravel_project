@@ -18,6 +18,19 @@
                      <textarea v-model="product.description" id="description"></textarea>
                 </div>
             </div>
+
+            <!-- New Section for Showing Discounted Price -->
+            <div class="form-second-group">
+                <div>
+                    <label for="discount">Discount (%)</label>
+                    <input type="number" v-model="product.discount" id="discount">
+                </div>
+                <div>
+                    <label for="discountedPrice">Price After Discount</label>
+                    <input type="text" :value="discountedPrice" id="discountedPrice" readonly>
+                </div>
+            </div>
+
             <div class="form-second-group">
                 <div>
                     <label for="image">Product Image</label>
@@ -31,6 +44,15 @@
                     </select>
                 </div>
             </div>
+            <div class="form-second-group">
+                <div>
+                    <label for="condition">Product Condition</label>
+                    <select v-model="product.product_condition_id" id="condition">
+                        <option value="">Select Condition</option>
+                        <option v-for="condition in product_conditions" :key="condition.id" :value="condition.id">{{ condition.product_condition }}</option>
+                    </select>
+                </div>
+            </div>
             <button type="submit" class="submit--btn">Add Product</button>
         </form>
     </div>
@@ -38,66 +60,98 @@
 
 <script>
     import { useToastr } from "../toastr";
-
     const toastr = useToastr();
 
-    export default{
-
+    export default {
         name: 'AddProduct',
-
         data() {
             return {
-
                 title: 'Add Product',
                 categories: [],
-                product:{
-                   name: '',
-                   description: '',
-                   price: '',
-                   category_id: null,
-                   image: null,
+                product_conditions: [],
+                product: {
+                    name: '',
+                    description: '',
+                    price: '',
+                    category_id: null,
+                    image: null,
+                    discount: 0,
+                    product_condition_id: null
                 }
             }
         },
 
-        methods:{
-
-            getCategories: function(){
+        methods: {
+            getCategories() {
                 axios.get(`${window.location.protocol}//${window.location.host}/api/categories`)
-                     .then(response => { this.categories = response.data.categories;})
-                     .catch(error => { console.log(error);});
+                    .then(response => {
+                        this.categories = response.data.categories;
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            },
+
+            getCondition() {
+                axios.get(`${window.location.protocol}//${window.location.host}/api/product-conditions`)
+                    .then(response => {
+                        this.product_conditions = response.data;
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
             },
 
             onFileSelected(event) {
                 this.product.image = event.target.files[0];
             },
 
-            addProduct: function(){
+            addProduct() {
+                const formData = new FormData();
+                formData.append('name', this.product.name);
+                formData.append('description', this.product.description);
+                formData.append('price', this.product.price);
+                formData.append('category_id', this.product.category_id);
+                formData.append('discount', this.product.discount || 0); // Default discount to 0
+                formData.append('product_condition_id', this.product.product_condition_id);
+                if (this.product.image) {
+                    formData.append('image', this.product.image);
+                }
 
-                axios.post(`${window.location.protocol}//${window.location.host}/api/products`, this.product,{
+                axios.post(`${window.location.protocol}//${window.location.host}/api/products`, formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
                 })
                     .then(response => {
-                        toastr.success("Product created successfully !!.");
+                        toastr.success("Product created successfully!");
                         this.$router.push({ path: '/' });
                     })
                     .catch(error => {
                         const errors = JSON.parse(error.request.response).errors;
                         for (const property in errors) {
-                            toastr.warning(`${errors[property]}`)
+                            toastr.warning(`${errors[property]}`);
                         }
                     });
             }
-
         },
 
-        created() { this.getCategories(); },
-    }
+        computed: {
+            // Computed property to calculate the discounted price
+            discountedPrice() {
+                const discountAmount = (this.product.price * this.product.discount) / 100;
+                const finalPrice = this.product.price - discountAmount;
+                return finalPrice.toFixed(2); // Keep two decimal places for precision
+            }
+        },
 
+        created() {
+            this.getCategories();
+            this.getCondition();
+        }
+    }
 </script>
 
 <style>
-
+/* Add your styles here */
 </style>

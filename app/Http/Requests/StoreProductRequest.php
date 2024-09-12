@@ -27,6 +27,7 @@ class StoreProductRequest extends FormRequest
             'price' => ['required', 'numeric'],
             'category_id' => ['required', 'exists:categories,id'],
             'image' => ['nullable', 'mimes:jpeg,png,jpg,gif'],
-        ];
+            'discount' => 'nullable|numeric|min:0|max:100', // Discount should be between 0 and 100
+            'product_condition_id' => ['required', 'exists:product_conditions,id'],        ];
     }
 }

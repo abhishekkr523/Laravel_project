@@ -11,7 +11,13 @@
                         <div class="product__info">
                             <h4>{{ product.name }}</h4>
                             <p>{{ product.description }}</p>
-                            <span>$ {{ product.price }}</span>
+                            <span class="original-price">
+                                    $ {{ (product.price / (1 - product.discount / 100)).toFixed(2) }}
+                                </span>
+                            <span>$ {{ product.price }}</span><br>
+                            
+                            <span>{{ product.discount }} %off</span>
+                            <button class="update delete" @click="goToUpdateProduct(product.id)">Update</button> <button class="delete update" @click="deleteProduct(product.id)">Delete</button> <!-- Delete button -->
                         </div>
                     </div>
                  </div>
@@ -74,7 +80,9 @@
 
             getProducts: function(){
                 axios.get(`${window.location.protocol}//${window.location.host}/api/products`)
-                     .then(response => { this.products = response.data.products;})
+                     .then(response => {
+                        console.log("uu",response)
+                        this.products = response.data.products;})
                      .catch(error => { console.log(error);});
             },
 
@@ -97,7 +105,20 @@
                 if (this.selectedOrder === "DESC") {
                     this.products = this.products.sort((a, b) => b.price - a.price);
                 }
-            }
+            },
+
+             goToUpdateProduct(id) {
+            this.$router.push({ path: `/update-product/${id}` });  // Navigate to UpdateProduct component
+        },
+
+         deleteProduct(id) {
+            axios.delete(`${window.location.protocol}//${window.location.host}/api/products/${id}`)
+                 .then(response => {
+                    // Remove the deleted product from the local list
+                    this.products = this.products.filter(product => product.id !== id);
+                 })
+                 .catch(error => { console.log(error); });
+        }
         },
 
         created() {

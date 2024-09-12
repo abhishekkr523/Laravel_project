@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProductConditionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,4 +20,11 @@ use App\Http\Controllers\CategoryController;
 Route::resource('products', ProductController::class)->except(['show']);
 Route::resource('categories', CategoryController::class);
 Route::get('/products/{categoryId}', [ProductController::class, 'getProductsByCategory'])->name('products.getProductsByCategory');
+
+
+
+Route::apiResource('product-conditions', ProductConditionController::class);
+// Route::put('/api/products/{id}', [ProductController::class, 'update']);
+Route::get('/products/product/{id}', [ProductController::class, 'getProductById'])->name('products.getProductById');
+
 

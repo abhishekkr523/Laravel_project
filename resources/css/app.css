@@ -129,16 +129,16 @@ label{
     display: block;
 }
 
-.add-product form > div{
+.update-product form, .add-product form > div{
     margin-bottom: 20px;
 }
 
-.add-product input{
+.update-product input, .add-product input{
     padding: 15px;
     border: 2px solid #eee;
 }
 
-.add-product textarea{
+.update-product textarea, .add-product textarea{
     padding: 20px;
     border: 2px solid #eee;
     width: 500px;
@@ -177,10 +177,20 @@ label{
     background-color: #fff;
  }
 
+ .original-price {
+    text-decoration: line-through;
+    color: #888;
+    margin-right: 10px;
+}
+
 .form-second-group select{
     padding: 15px;
     border: 2px solid #eee;
     background-color: #fff;
+ }
+
+ .display-image img{
+    width: 100px;
  }
 
 .select-label{
@@ -197,5 +207,12 @@ label{
     color: #fff;
     background-color: #B83375;
     font-size: 14px;
+ }
+ .update{
+    margin-left: 5px;
+    background-color: #B83375;
+    border:none;
+    padding: 5px;
+    color: #eee;
  }
 
