@@ -216,3 +216,10 @@ label{
     color: #eee;
  }
 
+ .apply_all_filter_btn{
+    background-color: #000000;
+    border:none;
+    padding: 5px;
+    color: #eee;
+ }
+

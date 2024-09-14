@@ -23,31 +23,77 @@ class ProductController extends Controller
         $this->productServiceImpl = $productServiceImpl;
     }
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        // $product = Product_condition::with('products')->get();
-        // return response()->json( $product);
-         // Eager load related tables: product_condition and categories
-         $products = Product::with(['product_con', 'categories'])->get();
-
-         return response()->json([
-             'status' => 200,
-             'products' => $products
-         ], 200);
-
-        
-        $product = product_condition::all();
-        $result = ['status' => 200];
+        // Get sorting, ordering, pagination, and search inputs
+        $sort = $request->input('sort', 'id');
+        $order = $request->input('order', 'desc'); 
+        $perPage = $request->input('limit', 3);
+        $keyword = $request->input('search', '');
+        $category_id = $request->input('category_id', '');
+        $condition_id = $request->input('condition_id', '');
+    
         try {
-            $result['products'] = $this->productServiceImpl->getProducts();
+            $query = Product::with(['product_con', 'categories'])
+                ->orderBy($sort, $order); 
+
+            if (!empty($keyword)) {
+                $query->where(function ($q) use ($keyword) {
+                    $q->where('name', 'LIKE', "%{$keyword}%")
+                       ->orWhereHas('product_con', function ($q) use ($keyword) {
+                            $q->where('product_condition', 'LIKE', "%{$keyword}%");
+                        })
+                        ->orWhereHas('categories', function ($q) use ($keyword) {
+                            $q->where('name', 'LIKE', "%{$keyword}%");
+                        });;
+                });
+            }
+           
+            if (!empty($category_id)) {
+                $query->whereHas('categories', function ($q) use ($category_id) {
+                    $q->where('categories.id', '=', $category_id);  // Exact match for category_id
+                });
+            }
+            
+
+            if (!empty($condition_id)) {
+                $query->whereHas('product_con', function ($q) use ($condition_id) {
+                    $q->where('id', '=', $condition_id);
+                });
+            }
+    
+            // Paginate the results
+            $products = $query->paginate($perPage);
+    
+            // Return paginated results
+            return response()->json([
+                'status' => 200,
+                'products' => $products,
+            ], 200);
+    
         } catch (Exception $e) {
-            $result = [
+            // Handle errors
+            return response()->json([
                 'status' => 500,
-                'error' => $e->getMessage()
-            ];
+                'error' => $e->getMessage(),
+            ], 500);
         }
-        return response()->json($result, $result['status']);
     }
+    
+
+    // public function index(Request $request): JsonResponse
+    // {
+    //     // $product = Product_condition::with('products')->get();
+    //     return response()->json( $request);
+    //      // Eager load related tables: product_condition and categories
+    //      $products = Product::with(['product_con', 'categories'])->get();
+
+    //      return response()->json([
+    //          'status' => 200,
+    //          'products' => $products
+    //      ], 200);
+
+    // }
 
     public function getProductsByCategory(int $categoryId): JsonResponse
     {
