@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
     <div class="products-list">
         <h2 class="component-title">{{ title }}</h2>
         <div class="products-list-container">
@@ -17,7 +17,7 @@
                             <span>$ {{ product.price }}</span><br>
                             
                             <span>{{ product.discount }} %off</span>
-                            <button class="update delete" @click="goToUpdateProduct(product.id)">Update</button> <button class="delete update" @click="deleteProduct(product.id)">Delete</button> <!-- Delete button -->
+                            <button class="update delete" @click="goToUpdateProduct(product.id)">Update</button> <button class="delete update" @click="deleteProduct(product.id)">Delete</button> 
                         </div>
                     </div>
                  </div>
@@ -262,9 +262,730 @@ changePage(page) {
   }
 };
 
-
+let table = new DataTable('#myTable');
 </script>
 
 <style>
+</style> -->
+<!-- <template>
+  <div class="products-list">
+      <h2 class="component-title">{{ title }}</h2>
+      <div class="products-list-container">
+          <div class="products-list-content">
+              <table id=" " class="display">
+                  <thead>
+                      <tr>
+                          <th>Image</th>
+                          <th>Name</th>
+                          <th>Description</th>
+                          <th>Original Price</th>
+                          <th>Current Price</th>
+                          <th>Discount</th>
+                          <th>Actions</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      <tr v-for="product in products" :key="product.id">
+                          <td><img :src="product.image" alt="Product Name" width="50"></td>
+                          <td>{{ product.name }}</td>
+                          <td>{{ product.description }}</td>
+                          <td>$ {{ (product.price / (1 - product.discount / 100)).toFixed(2) }}</td>
+                          <td>$ {{ product.price }}</td>
+                          <td>{{ product.discount }} % off</td>
+                          <td>
+                              <button class="update delete" @click="goToUpdateProduct(product.id)">Update</button>
+                              <button class="delete update" @click="deleteProduct(product.id)">Delete</button>
+                          </td>
+                      </tr>
+                  </tbody>
+              </table>
+          </div>
+          <div class="sidebar">
+              <form>
+                  <div>
+                      <label for="category" class="select-label">Filter by category : </label>
+                      <select id="category" v-model="selectedCategory" @change="applyAllChanges()" class="select-filter">
+                          <option value="">All</option>
+                          <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+                      </select>
+                  </div>
+                  <div>
+                      <label for="order" class="select-label">Sort by price : </label>
+                      <select id="order" v-model="selectedOrder" @change="applyAllChanges()" class="select-filter">
+                          <option value="">Order</option>
+                          <option value="ASC">ASC</option>
+                          <option value="DESC">DESC</option>
+                      </select>
+                  </div>
+                  <div>
+                      <label for="condition" class="select-label">Filter by condition: </label>
+                      <select id="conditions" v-model="selectedCondition" @change="applyAllChanges()" class="select-filter">
+                          <option value="">All</option>
+                          <option v-for="condition in conditions" :key="condition.id" :value="condition.id">{{ condition.product_condition }}</option>
+                      </select>
+                  </div>
+              </form>
+          </div>
+      </div>
+      <div class="pagination">
+          <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1">Previous</button>
+          <span>Page {{ currentPage }} of {{ totalPages }}</span>
+          <button @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages">Next</button>
+      </div>
+  </div>
+</template>
 
+<script>
+let table = new DataTable('#myTable');
+import axios from 'axios';
+
+export default {
+name: 'ProductsList',
+
+data() {
+  return {
+    title: 'Products List',
+    products: [],
+    categories: [],
+    conditions: [],
+    selectedCategory: '',
+    selectedOrder: '',
+    selectedCondition: '',
+    currentPage: 1,
+    totalPages: 1,
+    perPage: 3
+  };
+},
+
+methods: {
+  changePage(page) {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.applyAllChanges(); // Fetch products for the new page
+  },
+
+  getProducts(params = {}) {
+    params.page = this.currentPage;
+    params.limit = this.perPage;
+    let queryParams = new URLSearchParams(params).toString();
+
+    axios.get(`${window.location.protocol}//${window.location.host}/api/products?${queryParams}`)
+      .then(response => {
+        this.products = response.data.products.data;
+        this.totalPages = response.data.products.last_page;
+        this.$nextTick(() => {
+          // Initialize DataTables after DOM update
+          $('#productsTable').DataTable();
+        });
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  },
+
+  getCategories() {
+    axios.get(`${window.location.protocol}//${window.location.host}/api/categories`)
+      .then(response => {
+        this.categories = response.data.categories;
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  },
+
+  getCondition() {
+    axios.get(`${window.location.protocol}//${window.location.host}/api/product-conditions`)
+      .then(response => {
+        this.conditions = response.data;
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  },
+
+  sortByOrder() {
+    let params = {};
+    if (this.selectedOrder) {
+      params.order = this.selectedOrder;
+    }
+    this.getProducts(params);
+  },
+
+  filterByCategory() {
+    let params = {};
+    if (this.selectedCategory) {
+      params.category_id = this.selectedCategory;
+    }
+    this.getProducts(params);
+  },
+
+  filterByCondition() {
+    let params = {};
+    if (this.selectedCondition) {
+      params.condition_id = this.selectedCondition;
+    }
+    this.getProducts(params);
+  },
+
+  applyAllChanges() {
+    let params = {};
+
+    if (this.selectedCondition) {
+      params.condition_id = this.selectedCondition;
+    }
+
+    if (this.selectedCategory) {
+      params.category_id = this.selectedCategory;
+    }
+
+    if (this.selectedOrder) {
+      params.order = this.selectedOrder;
+    }
+
+    params.page = this.currentPage;
+    params.limit = this.perPage;
+
+    this.getProducts(params);
+  },
+
+  goToUpdateProduct(id) {
+    this.$router.push({ path: `/update-product/${id}` });
+  },
+
+  deleteProduct(id) {
+    axios.delete(`${window.location.protocol}//${window.location.host}/api/products/${id}`)
+      .then(response => {
+        this.products = this.products.filter(product => product.id !== id);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }
+},
+
+created() {
+  this.getProducts();
+  this.getCategories();
+  this.getCondition();
+}
+};
+</script>
+
+<style>
+/* DataTables CSS - Include in the <head> section */
+
+
+/* Add custom styles for DataTables if needed */
+
+
+</style>
+ -->
+<template>
+    <div class="products-list">
+        <h2 class="component-title">{{ title }}</h2>
+        <div class="products-list-container">
+            <div class="products-list-content">
+                <div v-for="product in products" :key="product.id">
+                    <div class="product">
+                        <div class="product__image">
+                            <img :src="product.image" alt="Product Name" />
+                        </div>
+                        <div class="product__info">
+                            <div class="product_data">
+                                <h4>{{ product.name }}</h4>
+                                <p>{{ product.description }}</p>
+                                <div style="display: flex">
+                                    <span
+                                        class="original-price"
+                                        style="margin-right: 10px"
+                                    >
+                                        $
+                                        {{
+                                            (
+                                                product.price /
+                                                (1 - product.discount / 100)
+                                            ).toFixed(2)
+                                        }}
+                                    </span>
+                                    <span>$ {{ product.price }}</span>
+                                </div>
+
+                                <span>{{ product.discount }} %off</span>
+                            </div>
+                            <div class="btngroup">
+                                <button
+                                    class="update delete"
+                                    @click="goToUpdateProduct(product.id)"
+                                >
+                                    Update
+                                </button>
+                                <button
+                                    class="delete update"
+                                    @click="deleteProduct(product.id)"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                            <!-- Delete button -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar">
+                <form>
+                    <div>
+                        <label for="category" class="select-label"
+                            >Filter by category :
+                        </label>
+                        <select
+                            id="category"
+                            v-model="selectedCategory"
+                            @change="applyAllChanges()"
+                            class="select-filter"
+                        >
+                            <option value="">All</option>
+                            <option
+                                v-for="category in categories"
+                                :key="category.id"
+                                :value="category.id"
+                            >
+                                {{ category.name }}
+                            </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="order" class="select-label"
+                            >Sort by price :
+                        </label>
+                        <select
+                            id="order"
+                            v-model="selectedOrder"
+                            @change="applyAllChanges"
+                            class="select-filter"
+                        >
+                            <option value="">Order</option>
+                            <option value="ASC">ASC</option>
+                            <option value="DESC">DESC</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="condition" class="select-label"
+                            >Filter by condition:
+                        </label>
+                        <select
+                            id="conditions"
+                            v-model="selectedCondition"
+                            @change="applyAllChanges"
+                            class="select-filter"
+                        >
+                            <option value="">All</option>
+                            <option
+                                v-for="condition in conditions"
+                                :key="condition.id"
+                                :value="condition.id"
+                            >
+                                {{ condition.product_condition }}
+                            </option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="pagination">
+            <button
+                @click="changePage(currentPage - 1)"
+                :disabled="currentPage === 1"
+            >
+                Previous
+            </button>
+            <span>Page {{ currentPage }} of {{ totalPages }}</span>
+            <button
+                @click="changePage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+            >
+                Next
+            </button>
+        </div>
+    </div>
+</template>
+
+<script>
+import axios from 'axios';
+export default {
+    name: "ProductsList",
+
+    data() {
+        return {
+            title: "Products List",
+            products: [],
+            categories: [],
+            conditions: [],
+            originalProducts: [],
+            selectedCategory: "",
+            selectedOrder: "",
+            selectedCondition: "", // Add this property
+            currentPage: 1,
+            totalPages: 1, // Add this for pagination
+            perPage: 10,
+        };
+    },
+
+    methods: {
+        changePage(page) {
+            if (page < 1 || page > this.totalPages) return;
+            this.currentPage = page;
+            this.applyAllChanges(); // Fetch products for the new page
+        },
+
+        // getProducts: function (params = {}) {
+        //       console.log("params1",params)
+        //       let queryParams = new URLSearchParams(params).toString();
+        //       console.log("parames2",queryParams)
+        //       axios.get(`${window.location.protocol}//${window.location.host}/api/products?${queryParams}`)
+        //         .then(response => {
+        //           console.log("jpp",response);
+        //           this.products = response.data.products.data;
+        //         })
+        //         .catch(error => {
+        //           console.log(error);
+        //         });
+        // },
+
+        getProducts(params = {}) {
+            // Add pagination parameters
+            // params.page = this.currentPage;
+            // params.limit = this.perPage;
+
+            let queryParams = new URLSearchParams(params).toString();
+
+            axios
+                .get(
+                    `${window.location.protocol}//${window.location.host}/api/products?${queryParams}`
+                )
+                .then((response) => {
+                    this.products = response.data.products.data;
+                    this.totalPages = response.data.products.last_page; // Get total pages from the response
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        },
+
+        getCategories: function () {
+            axios
+                .get(
+                    `${window.location.protocol}//${window.location.host}/api/categories`
+                )
+                .then((response) => {
+                    this.categories = response.data.categories;
+                    console.log("iii", this.categories);
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        },
+
+        getCondition: function () {
+            axios
+                .get(
+                    `${window.location.protocol}//${window.location.host}/api/product-conditions`
+                )
+                .then((response) => {
+                    this.conditions = response.data; // Ensure this.data is the array you expect
+                    console.log("iiiw", this.conditions);
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        },
+
+        // filterByCategory: function () {
+        //   axios.get(`${window.location.protocol}//${window.location.host}/api/products/${this.selectedCategory}`)
+        //     .then(response => {
+        //       this.products = response.data.products;
+        //       console.log("filterByCategory",this.products)
+        //     })
+        //     .catch(error => {
+        //       console.log(error);
+        //     });
+        // },
+
+        // sortByOrder: function () {
+        //   if (this.selectedOrder === "ASC") {
+        //     this.products = this.products.sort((a, b) => a.price - b.price);
+        //   }
+        //   if (this.selectedOrder === "DESC") {
+        //     this.products = this.products.sort((a, b) => b.price - a.price);
+        //   }
+        // },
+
+        // sortByOrder: function () {
+        //     let params = {};
+        //     if (this.selectedOrder) {
+        //         params.order = this.selectedOrder; // Ensure this matches the API filter parameter
+        //     }
+        //     console.log("parames99", params);
+
+        //     this.getProducts(params);
+        // },
+
+        // filterByCategory(e) {
+        //     console.log("aa", e.target.value, e.target.id);
+        //     let params = {};
+        //     if (this.selectedCategory) {
+        //         params.category_id = this.selectedCategory; // Ensure this matches the API filter parameter
+        //     }
+        //     console.log("parames", params);
+
+        //     this.getProducts(params); // Fetch filtered products from server
+        // },
+
+        // filterByCondition() {
+        //     let params = {};
+        //     if (this.selectedCondition) {
+        //         params.condition_id = this.selectedCondition; // Ensure this matches the API filter parameter
+        //     }
+        //     console.log("paramesv", params);
+
+        //     this.getProducts(params); // Fetch filtered products from server
+        // },
+
+        applyAllChanges() {
+            let params = {};
+
+            // Only add params if they have values
+            if (this.selectedCondition) {
+                params.condition_id = this.selectedCondition;
+            }
+
+            if (this.selectedCategory) {
+                params.category_id = this.selectedCategory;
+            }
+
+            if (this.selectedOrder) {
+                params.order = this.selectedOrder;
+            }
+
+            params.page = this.currentPage;
+            params.limit = this.perPage;
+
+            console.log("All Params:", params);
+            this.getProducts(params);
+        },
+
+        goToUpdateProduct(id) {
+            this.$router.push({ path: `/update-product/${id}` }); // Navigate to UpdateProduct component
+        },
+
+        deleteProduct(id) {
+            axios
+                .delete(
+                    `${window.location.protocol}//${window.location.host}/api/products/${id}`
+                )
+                .then((response) => {
+                    // Remove the deleted product from the local list
+                    this.products = this.products.filter(
+                        (product) => product.id !== id
+                    );
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        },
+    },
+
+    created() {
+        this.getProducts();
+        this.getCategories();
+        this.getCondition();
+    },
+};
+</script>
+
+<style scoped>
+/* Main container styling */
+.products-list {
+    max-width: 1300px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #e0e0e0; /* Light grey background */
+    border-radius: 12px;
+    box-shadow: 8px 8px 16px #bcbcbc, -8px -8px 16px #ffffff; /* Neumorphism shadow */
+}
+
+/* Component title */
+.component-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Products list container */
+.products-list-container {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+/* Products list content */
+.products-list-content {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Product item styling */
+.product {
+    width: 50vw;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 20px;
+    background: #e0e0e0; /* Light grey background */
+    border-radius: 12px;
+    box-shadow: 8px 8px 16px #bcbcbc, -8px -8px 16px #ffffff; /* Neumorphism shadow */
+}
+
+/* Product image styling */
+.product__image {
+    width: 15vw;
+}
+.product__image img {
+    max-width: 40%;
+    border-radius: 8px;
+    box-shadow: inset 4px 4px 8px #bcbcbc, inset -4px -4px 8px #ffffff; /* Neumorphism shadow */
+}
+
+/* Product info */
+.product__info {
+    display: flex;
+    text-align: center;
+    justify-content: space-between;
+    margin-top: 10px;
+    width: 35vw;
+}
+
+/* Product name and description */
+.product__info h4 {
+    font-size: 18px;
+    margin: 10px 0;
+    color: #333;
+}
+
+.product__info p {
+    font-size: 14px;
+    color: #666;
+}
+
+/* Price and discount */
+.original-price {
+    text-decoration: line-through;
+    color: #999;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.product__info span {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+}
+.btngroup {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.product__info .update {
+    background: #e0e0e0;
+    border: none;
+    color: #333;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    box-shadow: 4px 4px 8px #bcbcbc, -4px -4px 8px #ffffff; /* Neumorphism shadow */
+    transition: background 0.3s, transform 0.2s;
+}
+
+.product__info .update:hover {
+    background: #d0d0d0;
+    transform: scale(1.02);
+}
+
+.product__info .delete {
+    margin: 5px;
+    width: 80px;
+    background: #f0a;
+    border: none;
+    color: #fff;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    box-shadow: 4px 4px 8px #bcbcbc, -4px -4px 8px #ffffff; /* Neumorphism shadow */
+    transition: background 0.3s, transform 0.2s;
+}
+
+.product__info .delete:hover {
+    background: #e090a0;
+    transform: scale(1.02);
+}
+
+/* Sidebar styling */
+.sidebar {
+    flex: 0 0 250px;
+    background: #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 8px 8px 16px #bcbcbc, -8px -8px 16px #ffffff; /* Neumorphism shadow */
+}
+
+/* Form labels and selects */
+.select-label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.select-filter {
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    background: #e0e0e0;
+    border: none;
+    box-shadow: inset 4px 4px 8px #bcbcbc, inset -4px -4px 8px #ffffff; /* Neumorphism shadow */
+    color: #333;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.pagination button {
+    background: #e0e0e0;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    box-shadow: 4px 4px 8px #bcbcbc, -4px -4px 8px #ffffff; /* Neumorphism shadow */
+    transition: background 0.3s, transform 0.2s;
+    margin: 0 5px;
+}
+
+.pagination button:hover {
+    background: #d0d0d0;
+    transform: scale(1.02);
+}
+
+.pagination span {
+    margin: 0 10px;
+    color: #333;
+}
 </style>

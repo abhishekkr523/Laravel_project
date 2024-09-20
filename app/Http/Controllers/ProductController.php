@@ -10,6 +10,9 @@ use Illuminate\Http\JsonResponse;
 use App\Services\ImageUploadService;
 use App\Http\Requests\StoreProductRequest;
 use App\Services\Product\ProductServiceImpl;
+use App\Exports\ProductsExport;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\ProductImport;
 
 class ProductController extends Controller
 {
@@ -28,10 +31,11 @@ class ProductController extends Controller
         // Get sorting, ordering, pagination, and search inputs
         $sort = $request->input('sort', 'id');
         $order = $request->input('order', 'desc'); 
-        $perPage = $request->input('limit', 3);
+        $perPage = $request->input('limit', );  //by default 15
         $keyword = $request->input('search', '');
         $category_id = $request->input('category_id', '');
         $condition_id = $request->input('condition_id', '');
+        
     
         try {
             $query = Product::with(['product_con', 'categories'])
@@ -80,6 +84,23 @@ class ProductController extends Controller
         }
     }
     
+    public function import(Request $request)
+    {
+        // Validate the uploaded file
+        $request->validate([
+            'file' => 'required|mimes:csv,xlsx',
+        ]);
+
+        try {
+            // Import products from the uploaded file
+            Excel::import(new ProductImport, $request->file('file'));
+
+            return response()->json(['message' => 'Products imported successfully.'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error importing products: ' . $e->getMessage()], 500);
+        }
+    }
+
 
     // public function index(Request $request): JsonResponse
     // {
@@ -218,6 +239,11 @@ public function destroy(Product $product): JsonResponse
 {
     $product->delete();
     return response()->json(null, 204);
+}
+
+public function export()
+{
+    return Excel::download(new ProductsExport, 'products.xlsx');
 }
 
 }

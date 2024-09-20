@@ -2,6 +2,8 @@ import {createWebHistory, createRouter} from 'vue-router';
 import ProductsList from './components/ProductsList.vue';
 import AddProduct from './components/AddProduct.vue';
 import UpdateProduct from './components/UpdateProduct.vue';
+import products from './components/products.vue';
+import paginationTesting from './components/paginationTesting.vue';
 
 export const routes = [
     {
@@ -18,6 +20,16 @@ export const routes = [
         name: 'UpdateProduct',  
         path: '/update-product/:id',
         component: UpdateProduct
+    },
+    {
+        name: 'products',  
+        path: '/products',
+        component: products
+    },
+    {
+        name: 'paginationTesting',  
+        path: '/paginationTesting',
+        component: paginationTesting
     }
 ];
 

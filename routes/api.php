@@ -27,4 +27,7 @@ Route::apiResource('product-conditions', ProductConditionController::class);
 // Route::put('/api/products/{id}', [ProductController::class, 'update']);
 Route::get('/products/product/{id}', [ProductController::class, 'getProductById'])->name('products.getProductById');
 
+Route::get('export-products', [ProductController::class, 'export']);
+
+Route::post('products/import', [ProductController::class, 'import'])->name('products.import');
 
