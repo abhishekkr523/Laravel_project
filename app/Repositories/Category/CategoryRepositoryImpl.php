@@ -12,8 +12,22 @@ class CategoryRepositoryImpl implements CategoryRepository
         return Category::all();
     }
 
-    public function getCategoryById($categoryId): Category
+    // public function getCategoryById($categoryId): Category
+    // {
+    //     return Category::find($categoryId);
+    // }
+
+    public function getCategoryById(int $Id): Category
     {
-        return Category::find($categoryId);
+        $category = Category::find($Id);
+    
+        if (!$category) {
+            // dd($category);
+            throw new \Exception('Category not found');
+        }
+    
+        return $category;
     }
+    
+
 }

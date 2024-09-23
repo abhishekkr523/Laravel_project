@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::table('products', function (Blueprint $table) {
           
             $table->unsignedInteger('discount')->nullable();
-            $table->string('condition')->nullable();
            
         });
     }

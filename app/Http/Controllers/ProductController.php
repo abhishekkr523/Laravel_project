@@ -84,8 +84,14 @@ class ProductController extends Controller
         }
     }
     
+    public function export()
+    {
+        return Excel::download(new ProductsExport, 'products.xlsx');
+    }
+
     public function import(Request $request)
     {
+        // dd($request);
         // Validate the uploaded file
         $request->validate([
             'file' => 'required|mimes:csv,xlsx',
@@ -116,13 +122,35 @@ class ProductController extends Controller
 
     // }
 
-    public function getProductsByCategory(int $categoryId): JsonResponse
-    {
-        $result = ['status' => 200];
+    public function getProductsByCategory($categoryId): JsonResponse
+{
+    // dd($categoryId);
+    // Cast the categoryId to integer to handle string inputs from routes
+    $categoryId = (int) $categoryId;
+
+    $result = ['status' => 200];
+    try {
+        // Get products by category
         $products = $this->productServiceImpl->getProductsByCategory($categoryId);
+
+        // If no products are found, return a 404 status
+        if ($products->isEmpty()) {
+            return response()->json(['status' => 404, 'message' => 'No products found for this category'], 404);
+        }
+
         $result['products'] = $products;
-        return response()->json($result, $result['status']);
+    } catch (Exception $e) {
+        // Handle any errors
+        $result = [
+            'status' => 500,
+            'message' => 'Error retrieving products',
+            'error' => $e->getMessage(),
+        ];
     }
+
+    return response()->json($result, $result['status']);
+}
+
 
     /**
      * @throws Exception
@@ -218,22 +246,22 @@ class ProductController extends Controller
 
 
      public function getProductById($id): JsonResponse
-{
-    try {
+      {
+       try {
         $product = Product::with('categories')->findOrFail($id);  // Eager load categories
         return response()->json([
             'status' => 200,
             'product' => $product,
             'categories' => $product->categories // Return associated categories
         ], 200);
-    } catch (Exception $e) {
+        } catch (Exception $e) {
         return response()->json([
             'status' => 404,
             'message' => 'Product not found!',
             'error' => $e->getMessage()
         ], 404);
-    }
-}
+        }
+       }
 
 public function destroy(Product $product): JsonResponse
 {
@@ -241,9 +269,5 @@ public function destroy(Product $product): JsonResponse
     return response()->json(null, 204);
 }
 
-public function export()
-{
-    return Excel::download(new ProductsExport, 'products.xlsx');
-}
 
 }

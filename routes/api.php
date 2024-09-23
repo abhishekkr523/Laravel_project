@@ -31,3 +31,9 @@ Route::get('export-products', [ProductController::class, 'export']);
 
 Route::post('products/import', [ProductController::class, 'import'])->name('products.import');
 
+
+Route::get('/products/category/{categoryId}', [ProductController::class, 'getProductsByCategory']);
+
+
+
+

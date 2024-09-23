@@ -1,12 +1,5 @@
 <template>
     <div>
-        <div class="up">
-            <form @submit.prevent="uploadFile">
-                <input type="file" ref="fileInput" name="file" />
-                <button type="submit">Import Products</button>
-            </form>
-            <div v-if="message">{{ message }}</div>
-        </div>
         <div class="filter_data">
             <div class="filter-container">
                 <div class="filter-item">
@@ -27,6 +20,7 @@
                         class="page-limit-select"
                         @click="getLimit"
                     >
+                    <option value="1">1</option>
                         <option value="10">10</option>
                         <option value="25">25</option>
                         <option value="50">50</option>
@@ -40,6 +34,18 @@
                         <i class="fa fa-filter filter-icon"></i> Filter
                     </button>
                 </div>
+                <div class="up">
+                    <form @submit.prevent="uploadFile">
+                        <input type="file" ref="fileInput" name="file" />
+                        <button type="submit" class="export-button">Import Products</button>
+                    </form>
+                    <div v-if="message">{{ message }}</div>
+                </div>
+                <span>
+                    <button @click="exportData" class="export-button">
+                        Export Data
+                    </button>
+                </span>
             </div>
 
             <!-- Filter Form (conditionally shown) -->
@@ -137,7 +143,7 @@
                     <th>Categories</th>
                 </tr>
             </thead>
-            <tfoot>
+            <!-- <tfoot>
                 <tr>
                     <th>ID</th>
                     <th>Name</th>
@@ -148,7 +154,7 @@
                     <th>Condition</th>
                     <th>Categories</th>
                 </tr>
-            </tfoot>
+            </tfoot> -->
         </table>
 
         <div>
@@ -159,7 +165,6 @@
                     :total-rows="rows"
                     :per-page="perPage"
                     aria-controls="example"
-                    @change="changePage"
                 />
 
                 <!-- Current Page Indicator -->
@@ -204,6 +209,10 @@ export default {
             selectedOrder: "",
             selectedCondition: "",
             currentPage: 1,
+            param: {
+                currentPage: 1,
+                pageLimit: 1,
+            },
             laravelData: {
                 current_page: 1,
                 data: [],
@@ -213,24 +222,27 @@ export default {
         };
     },
     computed: {
-        // Total number of rows based on API response
         rows() {
-            return this.laravelData.total;
+            return this.laravelData.total || 0; // Update with total rows after filtering
         },
-        // Items per page
         perPage() {
             return Number(this.pageLimit);
         },
     },
+
+    // watch: {
     watch: {
-        pageLimit(newLimit) {
-            if (this.table) {
-                this.table.page.len(newLimit).draw();
-                this.loadPageData(1); // Reload data from the first page
-            }
+        currentPage(newPage) {
+            this.getResults(newPage);
         },
     },
+
     methods: {
+        handleClick(pageNumber) {
+            // your handling logic here
+            console.log("pageNumber", pageNumber);
+        },
+
         toggleFilterForm() {
             this.showFilterForm = !this.showFilterForm; // Toggle form visibility
         },
@@ -239,6 +251,11 @@ export default {
             this.selectedCategory = "";
             this.selectedOrder = "";
             this.selectedCondition = "";
+        },
+
+        exportData() {
+            // Call the API route to export products
+            window.location.href = `${window.location.origin}/api/export-products`;
         },
 
         getLimit() {
@@ -255,12 +272,6 @@ export default {
                 .catch((error) => {
                     console.error("Error fetching data:", error);
                 });
-        },
-
-        changePage(page) {
-            console.log("Page changed to:", page);
-            this.currentPage = page;
-            this.getResults(page); // Fetch new data based on the page number
         },
 
         getResults(page = 1) {
@@ -304,11 +315,13 @@ export default {
                     console.log(error);
                 });
         },
+
         applyAllChanges() {
             if (this.table) {
-                let params = {};
-                params.page = 1;
-                params.limit = this.pageLimit;
+                let params = {
+                    page: 1,
+                    limit: this.pageLimit,
+                };
                 if (this.selectedCondition) {
                     params.condition_id = this.selectedCondition;
                 }
@@ -322,12 +335,29 @@ export default {
                 const queryString = new URLSearchParams(params).toString();
                 const apiUrl = `/api/products?${queryString}`;
 
-                this.table.ajax.url(apiUrl).load();
+                // Make the AJAX call for filtered data
+                axios
+                    .get(apiUrl)
+                    .then((response) => {
+                        const productsData = response.data.products;
+
+                        // Update the laravelData object
+                        this.laravelData = productsData;
+
+                        // Update the table with new filtered data
+                        this.updateTableData(productsData.data);
+
+                        // Reset the current page
+                        this.currentPage = 1;
+                        this.searchQuery = "";
+                        this.showFilterForm = false;
+                    })
+                    .catch((error) => {
+                        console.error("Error fetching filtered data:", error);
+                    });
             } else {
                 console.error("DataTable instance is not initialized.");
             }
-
-            this.showFilterForm = false;
         },
         async uploadFile() {
             const fileInput = this.$refs.fileInput;
@@ -457,270 +487,213 @@ export default {
         });
 
         this.getResults(this.laravelData.current_page);
+        this.getLimit();
     },
 };
 </script>
 
-<style scoped>
-/* Your custom CSS styling */
-</style>
-
 <style>
-.top {
-    display: flex !important;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.bottom {
-    display: flex;
-    justify-content: space-between;
-}
-.up {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    margin: 20px auto;
-    max-width: 600px;
-    padding: 10px;
-    border-radius: 12px;
-    background: #e0e0e0; /* Light grey background */
-    box-shadow: 8px 8px 16px #bcbcbc, -8px -8px 16px #ffffff; /* Neumorphism shadow */
-}
-
-/* Form styling */
-.up form {
-    display: flex;
-    align-items: center;
-    flex: 1;
-}
-
-/* File input styling */
-.up input[type="file"] {
-    margin-right: 10px;
-    padding: 10px;
-    border: none;
-    border-radius: 8px;
-    background: #e0e0e0;
-    box-shadow: inset 4px 4px 8px #bcbcbc, inset -4px -4px 8px #ffffff; /* Neumorphism shadow */
-    font-size: 14px;
-    flex: 1;
-}
-
-/* Button styling */
-.up button {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 8px;
-    background: #e0e0e0;
+/* General Styling */
+body {
+    font-family: "Arial", sans-serif;
+    background-color: #ffe6f2;
     color: #333;
-    font-size: 14px;
-    cursor: pointer;
-    box-shadow: 4px 4px 8px #bcbcbc, -4px -4px 8px #ffffff; /* Neumorphism shadow */
-    transition: background 0.3s, transform 0.2s;
-}
-
-.up button:hover {
-    background: #d0d0d0; /* Slightly darker on hover */
-    transform: scale(1.02); /* Slight zoom effect on hover */
-}
-
-/* Message styling */
-.up div[v-if="message"] {
-    margin-left: 15px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    background: #e0e0e0;
-    color: #333;
-    border: 1px solid #c0c0c0;
-    box-shadow: inset 4px 4px 8px #bcbcbc, inset -4px -4px 8px #ffffff; /* Neumorphism shadow */
-}
-
-/* Table styling */
-#example {
-    width: 100%;
-    border-collapse: collapse;
-    border-radius: 12px;
-    background: #e0e0e0; /* Light grey background */
-    box-shadow: 8px 8px 16px #bcbcbc, -8px -8px 16px #ffffff; /* Neumorphism shadow */
-}
-
-/* Table header */
-#example thead {
-    background: #d0d0d0; /* Slightly darker grey */
-}
-
-#example th {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 2px solid #b0b0b0;
-    color: #333;
-    border-radius: 8px 8px 0 0; /* Rounded top corners */
-}
-
-/* Table body rows */
-#example tbody tr {
-    border-bottom: 2px solid #b0b0b0;
-}
-
-#example td {
-    padding: 12px;
-    border-right: 1px solid #d0d0d0;
-}
-
-/* Alternating row colors */
-#example tbody tr:nth-child(odd) {
-    background: #f0f0f0;
-}
-
-#example tbody tr:nth-child(even) {
-    background: #e0e0e0;
-}
-
-/* Hover effect on rows */
-#example tbody tr:hover {
-    background: #d8d8d8;
-}
-
-/* Style for the image column */
-#example tbody td img {
-    max-width: 100px;
-    height: auto;
-    display: block;
-    border-radius: 8px;
 }
 
 .filter_data {
-    padding: 1rem;
+    background-color: #fff0f5;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 20px;
 }
 
 .filter-container {
     display: flex;
+    justify-content: space-between;
     flex-wrap: wrap;
-    gap: 1rem;
-    align-items: center;
+    gap: 15px;
 }
 
 .filter-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
 }
 
 .custom-search {
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    padding: 10px;
+    border-radius: 20px;
+    border: 2px solid #ff99cc;
+    outline: none;
     width: 200px;
-    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.custom-search:focus {
+    border-color: #ff66b2;
+    box-shadow: 0 0 8px #ff66b2;
 }
 
 .search-icon {
-    font-size: 1rem;
-    color: #666;
+    margin-left: -30px;
+    color: #ff66b2;
 }
-
+.up{
+    display: flex;
+    align-items: center;
+    justify-content: center;  
+}
+.up form{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+.up form input{
+    width: 230px;
+}
 .page-limit-select {
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    width: 100px;
+    padding: 8px;
+    border-radius: 20px;
+    border: 2px solid #ff99cc;
+    background-color: #ffe6f2;
+    color: #333;
 }
 
 .page-limit-icon {
-    font-size: 1rem;
-    color: #666;
+    margin-left: 10px;
+    color: #ff66b2;
 }
 
 .filter-btn {
-    background-color: #007bff;
-    color: #fff;
+    background-color: #ff66b2;
+    color: white;
     border: none;
-    border-radius: 4px;
-    padding: 0.5rem 1rem;
+    padding: 10px 20px;
+    border-radius: 20px;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    transition: background-color 0.3s ease;
 }
 
 .filter-btn:hover {
-    background-color: #0056b3;
+    background-color: #ff3385;
 }
 
-.filter-icon {
-    font-size: 1rem;
+.export-button {
+    background-color: #ff66b2;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
+.export-button:hover {
+    background-color: #ff3385;
+}
+
+/* Filter Form */
 .filter-form {
-    margin-top: 1rem;
-    display: flex;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+    background: rgb(214, 212, 212);
 }
 
 .form-group {
-    margin-bottom: 1rem;
+    margin-bottom: 15px;
 }
 
 .select-label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    display: block;
+    font-weight: bold;
+    color: #ff66b2;
+    margin-bottom: 8px;
 }
 
 .select-filter {
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    width: 200px;
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    border: 2px solid #ff99cc;
 }
 
-.category-icon {
-    font-size: 1rem;
-    color: #666;
-}
-
-.order-icon {
-    font-size: 1rem;
-    color: #666;
-}
-
+.category-icon,
+.order-icon,
 .condition-icon {
-    font-size: 1rem;
-    color: #666;
+    margin-right: 8px;
+    color: #ff66b2;
 }
 
-#custom-pagination {
-    display: flex;
-    align-items: center;
+.btn-primary {
+    background-color: #ff66b2;
+    border-color: #ff66b2;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+}
+
+.btn-primary:hover {
+    background-color: #ff3385;
+}
+
+.btn-secondary {
+    background-color: #fff0f5;
+    border-color: #ff99cc;
+    color: #ff66b2;
+    padding: 8px 16px;
+    border-radius: 20px;
+}
+
+.btn-secondary:hover {
+    background-color: #ff99cc;
+}
+
+/* Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+}
+
+th,
+td {
+    padding: 12px;
+    border: 1px solid #ff99cc;
+    text-align: left;
+}
+
+thead th {
+    background-color: #ff66b2;
+    color: white;
+}
+
+tfoot th {
+    background-color: #ffe6f2;
+    color: #333;
+}
+
+table tr:nth-child(even) {
+    background-color: #fff0f5;
+}
+
+/* Pagination */
+.pagination {
     justify-content: center;
-    gap: 0.5rem;
+    margin-top: 15px;
 }
 
-.nav-btn {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    font-size: 1rem;
+.page-link {
+    color: #ff66b2;
 }
 
-.nav-btn:hover {
-    background-color: #0056b3;
+.page-item.active .page-link {
+    background-color: #ff66b2;
+    border-color: #ff66b2;
 }
 
-#page-info {
-    font-size: 1rem;
-}
-
-.page-input {
-    width: 50px;
-    padding: 0.25rem;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    text-align: center;
+.page-item.disabled .page-link {
+    color: #ff99cc;
+    background-color: #ffe6f2;
 }
 </style>

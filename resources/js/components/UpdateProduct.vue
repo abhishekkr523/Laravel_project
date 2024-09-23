@@ -267,114 +267,87 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 .update-product {
-    background-color: #e0e0e0;
-    border-radius: 20px;
+    max-width: 600px;
+    margin: 0 auto;
     padding: 20px;
-    box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.2),
-        -8px -8px 16px rgba(255, 255, 255, 0.5);
+    border-radius: 12px;
+    box-shadow: 8px 8px 16px #fbeaed, -8px -8px 16px #ffffff; /* Neumorphism shadow */
 }
 
 .component-title {
     font-size: 24px;
     margin-bottom: 20px;
-    text-align: center;
+    color: #c2185b; /* Darker pink for the title */
 }
 
+/* Form styling */
 .update-form {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-.form-first-group,
-.form-second-group {
+/* Input styling */
+.input {
     display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    height: 100px;
-}
-
-.input-group {
-    flex: 1;
-    height: 42px;
-}
-
-.input,
-.section {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    width: 50%;
-}
-
-
-.input label {
-    margin-bottom: 5px;
-    font-weight: bold;
+    flex-direction: column;
 }
 
 .form-input,
-.form-select,
-.form-textarea {
-    height: 42px;
-    background: #e0e0e0;
-    border: none;
-    border-radius: 10px;
+.form-textarea,
+.form-select {
     padding: 10px;
-    font-size: 16px;
-    box-shadow: inset 6px 6px 12px rgba(0, 0, 0, 0.2),
-        inset -6px -6px 12px rgba(255, 255, 255, 0.5);
-    transition: all 0.3s ease;
+    border: 1px solid #ffb6c1;
+    border-radius: 8px;
+    background: #ffffff; /* White background for inputs */
+    transition: border-color 0.3s;
 }
 
 .form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
-    box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.3),
-        inset -3px -3px 6px rgba(255, 255, 255, 0.7);
+.form-textarea:focus,
+.form-select:focus {
+    border-color: #c2185b; /* Focused state with darker pink */
     outline: none;
 }
 
+/* Textarea styling */
 .form-textarea {
-    resize: none;
     height: 100px;
 }
 
+/* Button styling */
+.submit--btn {
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #f06292; /* Bright pink for button */
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.submit--btn:hover {
+    background: #e91e63; /* Darker pink on hover */
+}
+
+/* Image preview styling */
 .display-image {
-    width: 150px;
-    margin: 10px 0;
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
 }
 
 .image-preview {
     max-width: 100%;
-    border-radius: 10px;
-    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2),
-        -4px -4px 8px rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    box-shadow: 2px 2px 8px #ffb6c1; /* Light pink shadow */
 }
 
-.submit--btn {
-    background-color: #f0a;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3),
-        -2px -2px 6px rgba(255, 255, 255, 0.5);
-    transition: all 0.3s ease;
-}
-
-.submit--btn:hover {
-    background-color: rgb(225, 14, 155);
-}
-label{
-    display: flex;
-    align-items: center;
-    font-weight: bold;
-    margin-right: 5px;
+/* Label styling */
+label {
+    color: #c2185b; /* Dark pink for labels */
+    margin-bottom: 5px;
 }
 </style>

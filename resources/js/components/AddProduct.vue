@@ -204,22 +204,20 @@ export default {
     },
 };
 </script>
-
-<style scoped>
+<style>
 /* Container for Add Product form */
 .add-product {
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
-    background: #e0e0e0; /* Light grey background */
     border-radius: 12px;
-    box-shadow: 8px 8px 16px #bcbcbc, -8px -8px 16px #ffffff; /* Neumorphism shadow */
+    box-shadow: 8px 8px 16px #fbeaed, -8px -8px 16px #ffffff;
 }
 
 .component-title {
     font-size: 24px;
     margin-bottom: 20px;
-    color: #333;
+    color: #c2185b; /* Darker pink for the title */
 }
 
 /* Form styling */
@@ -249,18 +247,16 @@ textarea,
 select {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #ffb6c1;
     border-radius: 8px;
-    background: #e0e0e0; /* Light grey background */
-    box-shadow: inset 4px 4px 8px #bcbcbc, inset -4px -4px 8px #ffffff; /* Inset neumorphism shadow */
-    transition: border-color 0.3s, background 0.3s;
+   transition: border-color 0.3s, background 0.3s;
 }
 
 input[type="text"]:focus,
 input[type="number"]:focus,
 textarea:focus,
 select:focus {
-    border-color: #333;
+    border-color: #c2185b; /* Focused state with darker pink */
     background: #fff;
     outline: none;
 }
@@ -270,16 +266,16 @@ select:focus {
     padding: 10px 20px;
     border: none;
     border-radius: 8px;
-    background: #f0a;
+    background: #f06292; /* Bright pink button */
     color: #fff;
     font-size: 16px;
     cursor: pointer;
-    box-shadow: 4px 4px 8px #bcbcbc, -4px -4px 8px #ffffff; /* Neumorphism shadow */
+    box-shadow: 4px 4px 8px #ffb6c1, -4px -4px 8px #ffffff; /* Neumorphism shadow */
     transition: background 0.3s;
 }
 
 .submit--btn:hover {
-    background: #555;
+    background: #e91e63; /* Darker pink on hover */
 }
 
 /* Label styling */
@@ -287,11 +283,13 @@ label {
     display: block;
     font-weight: bold;
     margin-bottom: 5px;
-    color: #333;
+    color: #c2185b; /* Dark pink label text */
 }
 
 textarea {
     min-height: 100px;
     resize: vertical;
 }
+
 </style>
+

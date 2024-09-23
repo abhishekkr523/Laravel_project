@@ -9,4 +9,5 @@ interface CategoryRepository
 {
     public function getCategories(): Collection;
     public function getCategoryById(int $categoryId): Category;
+
 }

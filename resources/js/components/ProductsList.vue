@@ -485,10 +485,10 @@ created() {
         <h2 class="component-title">{{ title }}</h2>
         <div class="products-list-container">
             <div class="products-list-content">
-                <div v-for="product in products" :key="product.id">
+                <div v-for="product in products" :key="product.id" style="width:100%">
                     <div class="product">
                         <div class="product__image">
-                            <img :src="product.image" alt="Product Name" />
+                            <img :src="product.image" alt="Product Image" />
                         </div>
                         <div class="product__info">
                             <div class="product_data">
@@ -803,189 +803,152 @@ export default {
 };
 </script>
 
-<style scoped>
-/* Main container styling */
+<style>
 .products-list {
     max-width: 1300px;
-    margin: 20px auto;
+    margin: 0 auto;
     padding: 20px;
-    background: #e0e0e0; /* Light grey background */
     border-radius: 12px;
-    box-shadow: 8px 8px 16px #bcbcbc, -8px -8px 16px #ffffff; /* Neumorphism shadow */
 }
 
-/* Component title */
 .component-title {
     font-size: 24px;
-    font-weight: bold;
     margin-bottom: 20px;
-    color: #333;
+    color: #c2185b; /* Darker pink for the title */
 }
 
 /* Products list container */
 .products-list-container {
     display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
     gap: 20px;
 }
 
 /* Products list content */
 .products-list-content {
+    flex: 3;
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
-/* Product item styling */
+/* Individual product styling */
 .product {
-    width: 50vw;
     display: flex;
-    flex-direction: row;
     align-items: center;
-    margin-bottom: 10px;
-    padding: 20px;
-    background: #e0e0e0; /* Light grey background */
+    background: #ffffff; /* White background for products */
     border-radius: 12px;
-    box-shadow: 8px 8px 16px #bcbcbc, -8px -8px 16px #ffffff; /* Neumorphism shadow */
+    padding: 15px;
+    flex: 1 1 calc(33.333% - 20px); /* Responsive product cards */
+    transition: transform 0.3s;
 }
 
-/* Product image styling */
-.product__image {
-    width: 15vw;
+.product:hover {
+    transform: scale(1.02); /* Slight zoom effect on hover */
 }
+
 .product__image img {
-    max-width: 40%;
+    width: 200px;
     border-radius: 8px;
-    box-shadow: inset 4px 4px 8px #bcbcbc, inset -4px -4px 8px #ffffff; /* Neumorphism shadow */
+    margin-right: 20px;
 }
 
 /* Product info */
 .product__info {
-    display: flex;
-    text-align: center;
-    justify-content: space-between;
     margin-top: 10px;
-    width: 35vw;
 }
 
-/* Product name and description */
-.product__info h4 {
-    font-size: 18px;
-    margin: 10px 0;
-    color: #333;
+.product_data h4 {
+    color: #c2185b; /* Dark pink for product name */
 }
 
-.product__info p {
-    font-size: 14px;
-    color: #666;
-}
-
-/* Price and discount */
 .original-price {
     text-decoration: line-through;
-    color: #999;
-    display: block;
-    margin-bottom: 5px;
+    color: #999; /* Grey for original price */
 }
 
-.product__info span {
-    display: block;
-    margin-bottom: 5px;
-    color: #333;
-}
+/* Button group styling */
 .btngroup {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-.product__info .update {
-    background: #e0e0e0;
-    border: none;
-    color: #333;
-    border-radius: 8px;
-    padding: 8px 16px;
-    cursor: pointer;
-    box-shadow: 4px 4px 8px #bcbcbc, -4px -4px 8px #ffffff; /* Neumorphism shadow */
-    transition: background 0.3s, transform 0.2s;
+    gap: 10px;
+    margin-top: 10px;
 }
 
-.product__info .update:hover {
-    background: #d0d0d0;
-    transform: scale(1.02);
-}
-
-.product__info .delete {
-    margin: 5px;
-    width: 80px;
-    background: #f0a;
-    border: none;
+.update {
+    background: #f06292; /* Bright pink for update button */
     color: #fff;
+    padding: 8px 12px;
+    border: none;
     border-radius: 8px;
-    padding: 8px 16px;
     cursor: pointer;
-    box-shadow: 4px 4px 8px #bcbcbc, -4px -4px 8px #ffffff; /* Neumorphism shadow */
-    transition: background 0.3s, transform 0.2s;
+    transition: background 0.3s;
 }
 
-.product__info .delete:hover {
-    background: #e090a0;
-    transform: scale(1.02);
+.update:hover {
+    background: #e91e63; /* Darker pink on hover */
+}
+
+.delete {
+    background: #ff4081; /* Slightly different pink for delete button */
+    color: #fff;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.delete:hover {
+    background: #f50057; /* Darker pink on hover */
 }
 
 /* Sidebar styling */
 .sidebar {
-    flex: 0 0 250px;
-    background: #e0e0e0;
-    border-radius: 12px;
+    flex: 1;
+    background: #f8f8f8; /* Light grey for sidebar */
     padding: 20px;
-    box-shadow: 8px 8px 16px #bcbcbc, -8px -8px 16px #ffffff; /* Neumorphism shadow */
+    border-radius: 12px;
+    box-shadow: 4px 4px 8px #bcbcbc, -4px -4px 8px #ffffff; /* Neumorphism shadow */
 }
 
-/* Form labels and selects */
+/* Select and label styling */
 .select-label {
     display: block;
-    font-size: 14px;
     margin-bottom: 5px;
-    color: #333;
+    color: #c2185b; /* Dark pink for labels */
 }
 
 .select-filter {
     width: 100%;
-    padding: 8px;
+    padding: 10px;
+    border: 1px solid #ffb6c1;
     border-radius: 8px;
-    background: #e0e0e0;
-    border: none;
-    box-shadow: inset 4px 4px 8px #bcbcbc, inset -4px -4px 8px #ffffff; /* Neumorphism shadow */
-    color: #333;
+    transition: border-color 0.3s;
 }
 
-/* Pagination */
+.select-filter:focus {
+    border-color: #c2185b; /* Focused state with darker pink */
+    outline: none;
+}
+
+/* Pagination styling */
 .pagination {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
     margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
 }
 
 .pagination button {
-    background: #e0e0e0;
+    padding: 10px 15px;
     border: none;
     border-radius: 8px;
-    padding: 8px 16px;
+    background: #f06292; /* Bright pink for pagination buttons */
+    color: #fff;
     cursor: pointer;
-    box-shadow: 4px 4px 8px #bcbcbc, -4px -4px 8px #ffffff; /* Neumorphism shadow */
-    transition: background 0.3s, transform 0.2s;
-    margin: 0 5px;
+    transition: background 0.3s;
 }
 
 .pagination button:hover {
-    background: #d0d0d0;
-    transform: scale(1.02);
-}
-
-.pagination span {
-    margin: 0 10px;
-    color: #333;
+    background: #e91e63; /* Darker pink on hover */
 }
 </style>
