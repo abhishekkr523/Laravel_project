@@ -20,7 +20,7 @@
                         class="page-limit-select"
                         @click="getLimit"
                     >
-                    <option value="1">1</option>
+                        <option value="1">1</option>
                         <option value="10">10</option>
                         <option value="25">25</option>
                         <option value="50">50</option>
@@ -37,7 +37,9 @@
                 <div class="up">
                     <form @submit.prevent="uploadFile">
                         <input type="file" ref="fileInput" name="file" />
-                        <button type="submit" class="export-button">Import Products</button>
+                        <button type="submit" class="export-button">
+                            Import Products
+                        </button>
                     </form>
                     <div v-if="message">{{ message }}</div>
                 </div>
@@ -129,10 +131,11 @@
                 </div>
             </form>
         </div>
-
+        <h3><input type="checkbox" @click="selectAll" />Select All</h3>
         <table id="example" class="display" style="width: 100%">
             <thead>
                 <tr>
+                    <th>Select</th>
                     <th>ID</th>
                     <th>Name</th>
                     <th>Description</th>
@@ -141,20 +144,9 @@
                     <th>Discount</th>
                     <th>Condition</th>
                     <th>Categories</th>
+                    <th>Status</th>
                 </tr>
             </thead>
-            <!-- <tfoot>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Price</th>
-                    <th>Image</th>
-                    <th>Discount</th>
-                    <th>Condition</th>
-                    <th>Categories</th>
-                </tr>
-            </tfoot> -->
         </table>
 
         <div>
@@ -196,6 +188,7 @@ export default {
     data() {
         return {
             table: null,
+            selectedRows: [],
             showFilterForm: false,
             message: "",
             pageLimit: 10,
@@ -223,6 +216,15 @@ export default {
     },
     computed: {
         rows() {
+            if (
+                this.laravelData &&
+                this.laravelData.data &&
+                this.laravelData.data.length > 0
+            ) {
+                console.log(this.laravelData.data);
+            } else {
+                console.log("No data available");
+            }
             return this.laravelData.total || 0; // Update with total rows after filtering
         },
         perPage() {
@@ -253,12 +255,140 @@ export default {
             this.selectedCondition = "";
         },
 
+        // exportData() {
+        //     // Call the API route to export products
+        //     window.location.href = `${window.location.origin}/api/export-products`;
+        // },
+        // exportData() {
+        //     const selectedIds = Object.values(this.selectedRows);
+        //     console.log(selectedIds);
+
+        //     if (this.selectedRows.length > 0) {
+        //         const exportUrl = `${window.location.origin}/api/export-products`;
+        //         axios
+        //             .post(
+        //                 exportUrl,
+        //                 { selected_ids: selectedIds },
+        //                 {
+        //                     headers: {
+        //                         "Content-Type": "application/json",
+        //                     },
+        //                     responseType: "blob", // This is key for handling file downloads
+        //                 }
+        //             )
+        //             .then((response) => {
+        //                 // Create a URL for the file download
+        //                 const blob = new Blob([response.data], {
+        //                     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        //                 });
+        //                 const link = document.createElement("a");
+        //                 link.href = window.URL.createObjectURL(blob);
+        //                 link.download = "products.xlsx"; // Name of the downloaded file
+        //                 link.click(); // Programmatically click the link to trigger the download
+
+        //                 console.log("Export successful");
+        //             })
+        //             .catch((error) => {
+        //                 console.error("Export error:", error);
+        //             });
+        //     } else {
+        //         alert("Please select at least one row for export.");
+        //         window.location.href = `${window.location.origin}/api/export-products`;
+        //     }
+        // },
         exportData() {
-            // Call the API route to export products
-            window.location.href = `${window.location.origin}/api/export-products`;
+            const selectedIds = Object.values(this.selectedRows);
+
+            if (selectedIds.length > 0) {
+                // Export selected rows
+                this.exportSelectedRows(selectedIds);
+            } else {
+                // No rows selected, ask if user wants to export all data
+                if (
+                    confirm("No rows selected. Do you want to export all data?")
+                ) {
+                    this.exportAllData();
+                }
+            }
+        },
+
+        exportSelectedRows(selectedIds) {
+            const exportUrl = `${window.location.origin}/api/export-products`;
+
+            axios
+                .post(
+                    exportUrl,
+                    { selected_ids: selectedIds },
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        responseType: "blob", // Handle file response
+                    }
+                )
+                .then((response) => {
+                    this.downloadExcelFile(
+                        response.data,
+                        "selected_products.xlsx"
+                    );
+                })
+                .catch((error) => {
+                    console.error("Export error:", error);
+                });
+        },
+
+        exportAllData() {
+            const exportUrl = `${window.location.origin}/api/export-products`;
+
+            axios
+                .post(
+                    exportUrl,
+                    { selected_ids: [] },
+                    {
+                        // Pass empty array for all data
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        responseType: "blob", // Handle file response
+                    }
+                )
+                .then((response) => {
+                    this.downloadExcelFile(response.data, "all_products.xlsx");
+                })
+                .catch((error) => {
+                    console.error("Export error:", error);
+                });
+        },
+
+        downloadExcelFile(data, filename) {
+            const blob = new Blob([data], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+            const link = document.createElement("a");
+            link.href = window.URL.createObjectURL(blob);
+            link.download = filename;
+            link.click(); // Programmatically trigger download
+        },
+
+        selectAll(event) {
+            const checked = event.target.checked;
+            console.log("kk", checked);
+            this.selectedRows = checked
+                ? this.table
+                      .rows({ page: "current" })
+                      .data()
+                      .toArray()
+                      .map((row) => row.id)
+                : [];
+            console.log("kkk", this.selectedRows);
+            $('input[type="checkbox"]', this.table.rows().nodes()).prop(
+                "checked",
+                checked
+            );
         },
 
         getLimit() {
+            this.selectedRows = [];
             axios
                 .get(
                     `http://127.0.0.1:8000/api/products?page=${1}&limit=${
@@ -408,6 +538,41 @@ export default {
                     .load();
             }
         },
+
+        //     editProduct(productId) {
+        //     console.log(`Edit product with ID ${productId}`);
+        //     // Logic for editing the product
+        // },
+        // deleteProduct(productId) {
+        //     if (confirm("Are you sure you want to delete this product?")) {
+        //         console.log(`Delete product with ID ${productId}`);
+        //         // Logic for deleting the product
+        //     }
+        // },
+        viewProduct(id) {
+            this.$router.push({ path: `/viewProduct/${id}` }); // Navigate to UpdateProduct component
+        },
+
+        editProduct(id) {
+            this.$router.push({ path: `/update-product/${id}` }); // Navigate to UpdateProduct component
+        },
+        deleteProduct(id) {
+            axios
+                .delete(
+                    `${window.location.protocol}//${window.location.host}/api/products/${id}`
+                )
+                .then((response) => {
+                    // Remove the deleted product from the local list
+                    this.products = this.products.filter(
+                        (product) => product.id !== id
+                    );
+                    // this.$router.push({ path: "/products" });
+                    window.location.reload();
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        },
     },
     mounted() {
         this.$nextTick(() => {
@@ -428,6 +593,13 @@ export default {
                     },
                 },
                 columns: [
+                    {
+                        title: "Select",
+                        data: null,
+                        render: function (data, type, row) {
+                            return `<input type="checkbox" class="row-select" data-id="${row.id}">`;
+                        },
+                    },
                     { title: "ID", data: "id" },
                     { title: "Name", data: "name" },
                     { title: "Description", data: "description" },
@@ -450,6 +622,28 @@ export default {
                         title: "Categories",
                         data: (row) =>
                             row.categories.map((cat) => cat.name).join(", "),
+                    },
+                    {
+    title: "Status",
+    data: (row) => {
+        return row.status 
+            ? `<span class="badge bg-success">Active</span>` 
+            : `<span class="badge bg-danger">Inactive</span>`;
+    },
+},
+
+                    {
+                        title: "Actions", // Adding a new column for Edit and Delete buttons
+                        data: null,
+                        render: (data, type, row) => {
+                            return `
+                            <div class="d-flex justify-content-center">
+                                <button class="btn btn-primary view-btn mx-2 " data-id="${row.id}">View</button>
+                                <button class="btn btn-primary edit-btn " data-id="${row.id}">Edit</button>
+                                <button class="btn btn-danger delete-btn mx-2" data-id="${row.id}">Delete</button>
+                            </div>
+                        `;
+                        },
                     },
                 ],
                 dom: '<"top"lBf>rt<"bottom"ip><"clear">',
@@ -479,8 +673,69 @@ export default {
                         text: "Column Visibility",
                     },
                 ],
+                drawCallback: () => {
+                    // Re-check selected checkboxes
+                    this.selectedRows.forEach((rowId) => {
+                        const checkbox = $(
+                            `#example tbody .row-select[data-id='${rowId}']`
+                        );
+                        if (checkbox.length) {
+                            checkbox.prop("checked", true);
+                        }
+                    });
+
+                    // Add event listeners for Edit and Delete buttons
+                    $(".view-btn").on("click", (event) => {
+                        const productId = $(event.target).data("id");
+                        this.viewProduct(productId);
+                    });
+
+                    $(".edit-btn").on("click", (event) => {
+                        const productId = $(event.target).data("id");
+                        this.editProduct(productId);
+                    });
+
+                    $(".delete-btn").on("click", (event) => {
+                        const productId = $(event.target).data("id");
+                        this.deleteProduct(productId);
+                    });
+                },
             });
 
+            // Add event listener for checkboxes
+            // $("#example tbody").on("change", ".row-select", (event) => {
+            //     const rowId = $(event.target).data("id");
+            //     if (event.target.checked) {
+            //         if (!this.selectedRows.includes(rowId)) {
+            //             this.selectedRows.push(rowId);
+            //             console.log(this.selectedRows);
+            //         }
+            //         console.log(`Row with ID ${rowId} selected`);
+            //     } else {
+            //         this.selectedRows = this.selectedRows.filter(
+            //             (id) => id !== rowId
+            //         );
+            //         console.log(this.selectedRows);
+            //         console.log(`Row with ID ${rowId} unselected`);
+            //     }
+            // });
+
+            $("#example tbody").on("change", ".row-select", (event) => {
+                const rowId = $(event.target).data("id");
+                if (event.target.checked) {
+                    if (!this.selectedRows.includes(rowId)) {
+                        this.selectedRows.push(rowId);
+                        console.log(this.selectedRows);
+                    }
+                    console.log(`Row with ID ${rowId} selected`);
+                } else {
+                    this.selectedRows = this.selectedRows.filter(
+                        (id) => id !== rowId
+                    );
+                    console.log(this.selectedRows);
+                    console.log(`Row with ID ${rowId} unselected`);
+                }
+            });
             this.getCategories();
             this.getCondition();
             // this.initPaginationControls();
@@ -537,18 +792,18 @@ body {
     margin-left: -30px;
     color: #ff66b2;
 }
-.up{
+.up {
     display: flex;
     align-items: center;
-    justify-content: center;  
+    justify-content: center;
 }
-.up form{
+.up form {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
 }
-.up form input{
+.up form input {
     width: 230px;
 }
 .page-limit-select {

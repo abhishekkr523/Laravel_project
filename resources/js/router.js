@@ -4,6 +4,7 @@ import AddProduct from './components/AddProduct.vue';
 import UpdateProduct from './components/UpdateProduct.vue';
 import products from './components/products.vue';
 import paginationTesting from './components/paginationTesting.vue';
+import viewProduct from './components/viewProduct.vue';
 
 export const routes = [
     {
@@ -30,7 +31,13 @@ export const routes = [
         name: 'paginationTesting',  
         path: '/paginationTesting',
         component: paginationTesting
+    },
+    {
+        name: 'viewProduct',  
+        path: '/viewProduct/:id',
+        component: viewProduct
     }
+
 ];
 
 const router = createRouter({

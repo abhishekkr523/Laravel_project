@@ -32,7 +32,7 @@
                         class="form-textarea"
                     ></textarea>
                 </div>
-                
+
                 <div class="input-group">
                     <label for="category">Category</label>
                     <select
@@ -79,18 +79,33 @@
                     </select>
                 </div>
             </div>
-            <div class="input-group">
-                <label for="image" style=" display:flex; align-items:start;">Product Image</label>
-                <input
-                    type="file"
-                    id="image"
-                    accept="image/*"
-                    v-on:change="onFileSelected"
-                    class="form-input"
-                />
+            <div class="form-second-group">
+                <div class="input-group">
+                    <label for="image" style="display: flex; align-items: start"
+                        >Product Image</label
+                    >
+                    <input
+                        type="file"
+                        id="image"
+                        accept="image/*"
+                        v-on:change="onFileSelected"
+                        class="form-input"
+                    />
+                </div>
+                <div class="input">
+                    <label for="status">Status</label>
+                    <select v-model="product.status" id="status" class="form-select">
+                        <option :value="1">Active</option>
+                        <option :value="0">Inactive</option>
+                    </select>
+                </div>
                 
             </div>
-            <div class="display-image" v-if="product.image" style="margin-left:115px;">
+            <div
+                class="display-image"
+                v-if="product.image"
+                style="margin-left: 115px"
+            >
                 <img
                     :src="product.image"
                     alt="Product Image"
@@ -120,6 +135,7 @@ export default {
                 image: null,
                 discount: "",
                 product_condition_id: null,
+                status: "",
             },
             categories: [],
             product_conditions: [],
@@ -138,8 +154,9 @@ export default {
                     const productData = response.data.product;
                     this.product.name = productData.name;
                     this.product.description = productData.description;
-                    this.product.price = productData.price;
+                    this.product.price = (productData.price * 100) / (100 - productData.discount);
                     this.product.image = productData.image;
+                    this.product.status = productData.status;
                     this.product.discount = productData.discount;
                     this.product.product_condition_id =
                         productData.product_condition_id;
@@ -217,6 +234,7 @@ export default {
             formData.append("name", this.product.name);
             formData.append("description", this.product.description);
             formData.append("price", this.product.price);
+            formData.append("status", this.product.status);
             formData.append("category_id", this.product.category_id);
             formData.append("discount", this.product.discount);
             formData.append(
@@ -249,7 +267,7 @@ export default {
                 .then((response) => {
                     console.log("Responsee:", response);
                     toastr.success("Product updated successfully!");
-                    this.$router.push({ path: "/" });
+                    this.$router.push({ path: "/products" });
                 })
                 .catch((error) => {
                     const errors = JSON.parse(error.request.response).errors;
@@ -269,7 +287,7 @@ export default {
 
 <style>
 .update-product {
-    max-width: 600px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
     border-radius: 12px;
@@ -338,7 +356,9 @@ export default {
     justify-content: center;
     margin-top: 10px;
 }
-
+.display-image img{
+    width: 300px;
+}
 .image-preview {
     max-width: 100%;
     border-radius: 8px;

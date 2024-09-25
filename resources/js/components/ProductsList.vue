@@ -485,7 +485,11 @@ created() {
         <h2 class="component-title">{{ title }}</h2>
         <div class="products-list-container">
             <div class="products-list-content">
-                <div v-for="product in products" :key="product.id" style="width:100%">
+                <div
+                    v-for="product in products"
+                    :key="product.id"
+                    style="width: 100%"
+                >
                     <div class="product">
                         <div class="product__image">
                             <img :src="product.image" alt="Product Image" />
@@ -611,7 +615,7 @@ created() {
 </template>
 
 <script>
-import axios from 'axios';
+import axios from "axios";
 export default {
     name: "ProductsList",
 

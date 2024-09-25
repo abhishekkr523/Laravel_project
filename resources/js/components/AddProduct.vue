@@ -177,7 +177,7 @@ export default {
                 )
                 .then((response) => {
                     toastr.success("Product created successfully!");
-                    this.$router.push({ path: "/" });
+                    this.$router.push({ path: "/products" });
                 })
                 .catch((error) => {
                     const errors = JSON.parse(error.request.response).errors;

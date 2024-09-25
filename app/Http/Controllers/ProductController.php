@@ -84,9 +84,24 @@ class ProductController extends Controller
         }
     }
     
-    public function export()
+    public function export(Request $request)
     {
-        return Excel::download(new ProductsExport, 'products.xlsx');
+        // before for export all data
+        // return Excel::download(new ProductsExport, 'products.xlsx');
+
+         // dd($request->all());
+        // after for export selected data
+         // Assuming the selected IDs are sent in the request as an array
+         $selectedIds = $request->input('selected_ids');
+        //  dd($selectedIds);
+          // Check if selected_ids is provided, if not export all data
+    if (empty($selectedIds)) {
+        // Export all data
+        return Excel::download(new ProductsExport([]), 'all_products.xlsx');
+    } else {
+        // Export selected data
+        return Excel::download(new ProductsExport($selectedIds), 'selected_products.xlsx');
+    }
     }
 
     public function import(Request $request)
@@ -215,6 +230,7 @@ class ProductController extends Controller
             $product->name = $request->input('name', $product->name);
             $product->description = $request->input('description', $product->description);
             $product->price = $request->input('price', $product->price);
+            $product->status = $request->input('status', $product->status);
             $product->discount = $request->input('discount', $product->discount);
             $product->product_condition_id = $request->input('product_condition_id', $product->product_condition_id);
             // $category_id = $request->input('category_id');
